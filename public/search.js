@@ -19,7 +19,9 @@ const backgroundColors = {
     water: '#539DDF'
 }
 pokemonTypes = ''
-
+currentPage = null
+numOfPages = null
+resultArray = null
 
 function populatePokemon(data) {
     searchedPokemons += '<div class="cardContainer">'
@@ -42,26 +44,65 @@ function populatePokemon(data) {
     `
 }
 
-async function processPokemons(data) {
-    for (i = 0; i < data.pokemon.length; i++) {
-        if (i % 3 == 1) {
-            searchedPokemons += '<div class="pokemonCol">'
-        }
+function paginateMenu() {
+    $(".pageButtons").empty()
+    numOfPages = Math.ceil(resultArray.length / 9)
+    $(".pageButtons").append("<button class='firstPage'>First</button>")
+    $(".pageButtons").append("<button class='previousPage'>Previous</button>")
+    $(".pageButtons").append("<span class='allPages'></span>")
+    $(".pageButtons").append("<button class='nextPage'>Next</button>")
+    $(".pageButtons").append("<button class='lastPage'>Last</button>")
+    for (i = 1; i <= numOfPages; i++) {
+        page = `<button class="pages" value="${i}">${i}</button>`
+        $(".allPages").append(page)
+    }
+
+    $(".firstPage").click(firstPage)
+    $(".previousPage").click(previousPage)
+    $(".nextPage").click(nextPage)
+    $(".lastPage").click(lastPage)
+    pokemonsForPage(currentPage)
+}
+
+
+function processPokemons(data) {
+    currentPage = 1
+    resultArray = data.pokemon
+    paginateMenu()
+    
+}
+
+async function pokemonsForPage(pageId) {
+    searchedPokemons = ''
+    $("main").empty
+
+    console.log(resultArray)
+    
+    startIndex = 9 * (pageId - 1)
+    if (pageId == numOfPages) {
+        stopIndex = resultArray.length - 1
+    } else {
+        stopIndex = 9 * (pageId - 1) + 9 - 1
+    }
+
+    for (i = startIndex; i <= stopIndex; i++) {
+        // if (i % 3 == 0) {
+        //     searchedPokemons += '<div class="pokemonCol">'
+        // }
         await $.ajax({
             type: 'GET',
-            url: data.pokemon[i].pokemon.url,
+            url: resultArray[i].pokemon.url,
             success: populatePokemon
         })
 
-        if (i % 3 == 0) {
-            searchedPokemons += '</div>'
-        }
+        // if (i % 3 == 2) {
+        //     searchedPokemons += '</div>'
+        // }
     }
     $('main').html(searchedPokemons)
 }
 
 function displayPokemon(type_url) {
-    searchedPokemons = ''
     $("main").empty()
     $.ajax({
         type: 'GET',
@@ -88,6 +129,7 @@ async function populateTypes() {
 
 async function searchById() {
     searchedPokemons = ''
+    $(".pageButtons").empty()
     $("main").empty()
     id = $("#pokemonId").val()
     if ($.isNumeric(id)) {
@@ -107,6 +149,7 @@ async function searchById() {
 
 async function searchByName() {
     searchedPokemons = ''
+    $(".pageButtons").empty()
     $("main").empty()
     pokeName = $("#pokemonName").val()
     searchedPokemons += '<div class="pokemonCol">'
@@ -120,10 +163,40 @@ async function searchByName() {
     $("main").html(searchedPokemons)
 }
 
+function pageButton() {
+    page = $(this).attr("value")
+    pokemonsForPage(page)
+    currentPage = page
+}
+
+function firstPage() {
+    currentPage = 1
+    pokemonsForPage(currentPage)
+}
+
+function previousPage() {
+    if (currentPage > 1) {
+        currentPage--
+    }
+    pokemonsForPage(currentPage)
+}
+
+function nextPage() {
+    if (currentPage < numOfPages) {
+        currentPage++
+    }
+    pokemonsForPage(currentPage)
+}
+
+function lastPage() {
+    pokemonsForPage(numOfPages)
+}
+
 function setup() {
     populateTypes()
     $("#idSearch").click(searchById)
     $("#nameSearch").click(searchByName)
+    $("body").on("click", ".pages", pageButton)
     $("#pokeType").change(() => {
         displayPokemon($("#pokeType option:selected").val())
     })

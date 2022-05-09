@@ -25,9 +25,12 @@ nav a {
 }
 
 main {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto auto;
     justify-content: space-around;
-    gap: 30px;
+    column-gap: 30px;
+    row-gap: 30px;
+    /* gap: 30px; */
 }
 
 footer {
@@ -46,7 +49,7 @@ a {
 }
 
 img {
-    width: 100%;
+    width: 90%;
 }
 
 .pokemonContainer {
@@ -92,11 +95,20 @@ img {
     align-items: center;
 }
 
+.pageButtons{
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
 @media screen and (max-width:550px) {
 
-    main,
     nav {
         flex-direction: column;
         align-items: center;
+    }
+
+    main{
+        grid-template-columns: auto;
     }
 }
